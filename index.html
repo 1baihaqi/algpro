@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="id" class="antialiased">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Portofolio Interaktif — Versi Enhanced</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand1: '#6D28D9', /* indigo-700 */
+            brand2: '#8B5CF6', /* violet-500 */
+            accent: '#06B6D4', /* cyan-500 */
+            glass: 'rgba(255,255,255,0.6)'
+          },
+          fontFamily: {
+            sans: ['Inter', 'ui-sans-serif', 'system-ui']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* --- Small custom CSS because some visual effects are easier with raw CSS --- */
+    html, body { height:100%; }
+    body { cursor: none; background-image: radial-gradient( circle at 10% 20%, rgba(139,92,246,0.06), transparent 10%), radial-gradient(circle at 90% 80%, rgba(6,182,212,0.04), transparent 8% ); }
+
+    /* Custom cursor */
+    #cursor-dot, #cursor-ring { position: fixed; pointer-events: none; z-index: 9999; transform: translate(-50%, -50%); border-radius: 999px; mix-blend-mode: difference; }
+    #cursor-dot { width: 8px; height: 8px; background: white; box-shadow: 0 0 8px rgba(0,0,0,0.2); }
+    #cursor-ring { width: 36px; height: 36px; border: 2px solid rgba(255,255,255,0.6); transition: transform .18s ease-out, opacity .18s linear; }
+
+    /* Page transitions */
+    .page { display:none; opacity:0; transform: translateY(8px); transition: all .36s cubic-bezier(.2,.9,.2,1); }
+    .page.active { display:block; opacity:1; transform: translateY(0); }
+
+    /* 3D tilt */
+    .tilt-card { transform: perspective(900px) rotateX(0deg) rotateY(0deg); transition: transform .18s ease-out, box-shadow .18s ease-out; }
+
+    /* [NEW] Hero Slider */
+    .hero-slide { 
+      flex-shrink: 0; 
+      width: 100%; 
+      box-sizing: border-box;
+    }
+
+    /* Scroll to top */
+    #scrollTopBtn { position: fixed; bottom: 28px; right: 28px; z-index: 80; display: none; }
+
+    /* subtle focus ring for keyboard nav */
+    :focus { outline: 2px solid rgba(99,102,241,0.18); outline-offset: 2px; }
+
+    /* Mobile tweaks for custom cursor (hide on small screens) */
+    @media (max-width: 640px) { #cursor-dot, #cursor-ring { display: none; } }
+
+    /* Flood-proof image fallback */
+    img { image-rendering: auto; }
+  </style>
+</head>
+<body class="min-h-screen text-gray-800 dark:text-gray-100 bg-gradient-to-br from-white via-slate-50 to-violet-50 dark:from-gray-900 dark:via-indigo-900 dark:to-black transition-colors duration-300 font-sans">
+
+  <!-- Custom cursor elements -->
+  <div id="cursor-dot"></div>
+  <div id="cursor-ring"></div>
+
+  <!-- Loading overlay (brief) -->
+  <div id="loading" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-white/80 to-violet-50/80 dark:from-black/70 dark:to-indigo-900/70 backdrop-blur-sm">
+    <div class="flex flex-col items-center gap-4">
+      <div class="w-20 h-20 rounded-full bg-gradient-to-tr from-brand1 to-brand2 animate-pulse shadow-2xl"></div>
+      <div class="text-brand1 font-semibold">Memuat Portofolio...</div>
+    </div>
+  </div>
+
+  <!-- NAVBAR -->
+  <nav class="sticky top-0 z-40 backdrop-blur-md bg-white/60 dark:bg-gray-900/60 border-b border-white/10 dark:border-black/20">
+    <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-brand1 to-brand2 flex items-center justify-center text-white font-bold shadow">
+          PF
+        </div>
+        <div class="hidden sm:block">
+          <div class="font-bold text-lg text-gray-800 dark:text-gray-100">Kelompok 6</div>
+          <div class="text-xs text-gray-500 dark:text-gray-300">Math student • medioker</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- [DIUBAH] Navigasi dibuat responsive agar muat di mobile -->
+        <div class="flex items-center sm:gap-2 gap-1 bg-white/30 dark:bg-white/5 rounded-full sm:px-2 px-1 sm:py-1 py-1">
+          <button class="sm:px-3 px-2 sm:py-2 py-1 text-sm rounded-md hover:bg-white/40 dark:hover:bg-white/8 transition" data-navigate="home">Home</button>
+          <!-- Navigasi ini sekarang menggunakan data-navigate, bukan data-scroll-to, untuk konsistensi SPA -->
+          <button class="sm:px-3 px-2 sm:py-2 py-1 text-sm rounded-md hover:bg-white/40 dark:hover:bg-white/8 transition" data-navigate="projects">Proyek</button>
+          <button class="sm:px-3 px-2 sm:py-2 py-1 text-sm rounded-md hover:bg-white/40 dark:hover:bg-white/8 transition" data-navigate="reviews">Ulasan</button>
+        </div>
+
+        <button id="theme-toggle" class="p-2 rounded-full hover:scale-105 transition" aria-label="Toggle theme">
+          <!-- Icons will be populated by JS -->
+          <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
+
+        <!-- [DIUBAH] Logo GitHub sekarang selalu terlihat (bukan 'hidden sm:inline-block') -->
+        <a href="https://www.kaggle.com/baihaqifalis" target="_blank" class="inline-block p-2 rounded-full bg-white/40 dark:bg-white/5 hover:bg-white/60 transition" aria-label="Kaggle">
+          <img src="https://cdn4.iconfinder.com/data/icons/logos-and-brands/512/189_Kaggle_logo_logos-1024.png" alt="Kaggle Logo" class="w-5 h-5">
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main id="app" class="container mx-auto px-4 py-12">
+
+    <!-- HERO (parallax + intro) -->
+    <section id="home" class="page active overflow-hidden">
+      <div class="relative grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        <!-- left: hero text -->
+        <div class="space-y-6">
+          <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight leading-tight text-gray-900 dark:text-white">Hai, kami dari <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand1 to-brand2">Kelompok</span> — sekumpulan mahasiswa medioker</h1>
+          <p class="text-lg text-gray-600 dark:text-gray-300 max-w-xl">Turning math and logic into chill, interactive experiences that are actually fun to play with</p>
+
+          <div class="flex gap-3 items-center">
+            <!-- Tombol ini sekarang menggunakan data-navigate -->
+            <button data-navigate="projects" class="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-gradient-to-r from-brand1 to-brand2 text-white font-semibold shadow-lg hover:scale-105 transition">Lihat Proyek</button>
+            <button id="cta-contact" class="inline-flex items-center gap-2 px-4 py-3 rounded-full border border-gray-200 dark:border-gray-700 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition">Kontak</button>
+          </div>
+
+          <div class="mt-6 flex gap-3">
+            <div class="p-3 bg-white/60 dark:bg-gray-800/60 rounded-xl shadow backdrop-blur-sm">
+              <div class="text-xs text-gray-500">Proyek</div>
+              <!-- ID ditambahkan untuk pembaruan dinamis -->
+              <div id="stat-projects" class="text-xl font-bold text-brand1">{ 0+ }</div>
+            </div>
+            <div class="p-3 bg-white/60 dark:bg-gray-800/60 rounded-xl shadow backdrop-blur-sm">
+              <div class="text-xs text-gray-500">Ulasan</div>
+              <!-- ID ditambahkan untuk pembaruan dinamis -->
+              <div id="stat-reviews" class="text-xl font-bold">{ 0 }</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- [UPDATED] right: hero image slider -->
+        <div class="relative isolate">
+          <!-- Ganti tilt-card statis dengan slider -->
+          <div id="hero-card-container" class="rounded-2xl shadow-2xl bg-gradient-to-br from-white/60 to-brand2/8 dark:from-gray-800/60 dark:to-black/20 p-4 relative overflow-hidden">
+            <!-- Wrapper untuk overflow -->
+            <div class="overflow-hidden rounded-lg">
+              <!-- Slider Track -->
+              <!-- [DIUBAH] Durasi diubah ke 700ms dan easing diubah ke ease-out untuk feel yang lebih halus -->
+              <div id="hero-slider-track" class="flex transition-transform duration-700 ease-out">
+                <!-- Slides akan di-render oleh JS -->
+              </div>
+            </div>
+            
+            <!-- Tombol Navigasi Slider -->
+            <button id="hero-prev" class="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/50 dark:bg-black/50 hover:bg-white dark:hover:bg-black backdrop-blur-sm transition opacity-80 hover:opacity-100">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button id="hero-next" class="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/50 dark:bg-black/50 hover:bg-white dark:hover:bg-black backdrop-blur-sm transition opacity-80 hover:opacity-100">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- decorative floating shapes -->
+          <svg class="absolute -left-8 -top-8 opacity-40" width="140" height="140" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+            <circle cx="50" cy="50" r="50" fill="url(#g)" />
+            <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#8B5CF6" stop-opacity="0.6"/><stop offset="1" stop-color="#06B6D4" stop-opacity="0.3"/></linearGradient></defs>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECTS with filter + grid -->
+    <section id="projects" class="page mt-12">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold">Proyek Interaktif</h2>
+        <div class="flex items-center gap-2">
+          <label for="filter" class="text-sm text-gray-500">Filter</label>
+          <select id="filter" class="text-sm rounded-md p-2 bg-white/60 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700">
+            <option value="all">Semua</option>
+            <option value="edu">Edukasi</option>
+            <option value="game">Game</option>
+            <option value="tools">Tools</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="projects-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- JS will render cards here -->
+      </div>
+    </section>
+
+    <!-- REVIEWS -->
+    <section id="reviews" class="page mt-16">
+      <h2 class="text-2xl font-bold mb-4">Ulasan Buku</h2>
+      <div id="reviews-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- JS will render review cards here -->
+      </div>
+    </section>
+
+    <!-- Project detail container (SPA style) -->
+    <section id="project-detail" class="page mt-12 max-w-4xl mx-auto">
+      <!-- filled dynamically -->
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="mt-20 py-8 bg-white/60 dark:bg-gray-900/60 border-t border-white/10 dark:border-black/20">
+    <div class="container mx-auto px-4 text-center text-sm text-gray-600 dark:text-gray-300">
+      Kelompok 6.
+    </div>
+  </footer>
+
+  <!-- [NEW] Review Detail Modal -->
+  <div id="reviewModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <!-- Overlay -->
+    <div id="modal-overlay" class="absolute inset-0 bg-black/60 dark:bg-black/70 backdrop-blur-sm transition-opacity duration-300 ease-out"></div>
+    
+    <!-- Modal Content -->
+    <div id="modal-card" class="relative z-10 w-full max-w-lg transform-gpu rounded-2xl bg-white/80 dark:bg-gray-800/80 shadow-2xl backdrop-blur-md border border-white/20 dark:border-gray-700/30 p-6 transition-all duration-300 ease-out scale-95 opacity-0">
+      <button id="modal-close-btn" class="absolute -top-3 -right-3 z-20 p-1.5 rounded-full bg-white dark:bg-gray-700 shadow-lg hover:scale-110 transition" aria-label="Tutup modal">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-700 dark:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
+      <div class="flex flex-col sm:flex-row gap-6">
+        <img id="modal-img" src="https://placehold.co/400x600/gray/fff?text=Loading..." class="w-32 h-48 object-cover rounded-md flex-shrink-0 shadow-lg" onerror="this.onerror=null;this.src='https://placehold.co/400x600/gray/fff?text=no+image'">
+        <div class="flex-1">
+          <h3 id="modal-title" class="text-2xl font-bold text-gray-900 dark:text-white">Modal Title</h3>
+          <div id="modal-author" class="text-sm text-gray-600 dark:text-gray-400 mb-2">oleh Author</div>
+          <div id="modal-rating" class="flex items-center mb-4">
+            <!-- Stars will be populated by JS -->
+          </div>
+          <p id="modal-summary" class="text-base text-gray-700 dark:text-gray-300 mb-3">Ringkasan buku akan muncul di sini.</p>
+          <p id="modal-opinion" class="text-base text-gray-900 dark:text-gray-100 font-medium italic border-l-4 border-brand1 pl-3">"Opini pribadi akan muncul di sini."</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Scroll to top button -->
+  <button id="scrollTopBtn" aria-label="Scroll to top" class="p-3 rounded-full shadow-lg bg-white/90 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-800 transition">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+    </svg>
+  </button>
+
+  <!-- Scripts: data + interactivity -->
+  <script>
+    // ------- [UPDATED] Sample data (diperbanyak) -------
+    const projectsData = [
+      { id:'calculator', title:'Kalkulator Fungsional', desc:'Kalkulator interaktif dengan state management murni JS.', thumb:'https://media.makeameme.org/created/cant-fail-if-593acd.jpg', tags:['edu','tools'] },
+      { id:'matrix-calculator', title:'Kalkulator Matriks', desc:'Hitung determinan, transpose, dan perkalian matriks dengan interaktif.', thumb:'https://i.redd.it/ibp68hw6g6ua1.jpg', tags:['edu','tools']},
+      {  id: 'fullstack-buaya',  title: 'Dapet Buaya apa kah anda',  desc: 'Web app dengan backend Python (Flask) dan frontend HTML/JS untuk mencari data dari file CSV secara live.',thumb: '/static/proyek-buaya.jpg',tags: ['tools', 'edu', 'fullstack']},
+      { id:'logic-solver', title:'Solver Proposisi Logika', desc:'Alat untuk mengecek tabel kebenaran dan validitas argumen.', thumb:'https://placehold.co/800x520/10b981/fff?text=Logic+Solver', tags:['edu', 'tools'] },{ id:'bayes-viz', title:'Simulator Teorema Bayes', desc:'Pahami probabilitas kondisional dengan contoh interaktif.', thumb:'https://placehold.co/800x520/0ea5e9/fff?text=Bayes+Theorem', tags:['edu'] },
+      { id:'fractal-gen', title:'Generator Fraktal Sederhana', desc:'Jelajahi keindahan Mandelbrot Set dengan zoom interaktif.', thumb:'https://placehold.co/800x520/f97316/fff?text=Fraktal', tags:['edu', 'game'] }
+    ];
+
+    const reviewsData = [
+      { id:'book-1', title:'Filosofi Teras', author:'Henry Manampiring', rating:5, thumb:'https://placehold.co/400x600/6366f1/fff?text=Filosofi+Teras', summary:'Pengantar Stoa yang relevan untuk hidup modern.', opinion:'Sangat praktis dan menggugah.' },
+      { id:'book-2', title:'Sebuah Seni untuk Bersikap Bodo Amat', author:'Mark Manson', rating:4, thumb:'https://placehold.co/400x600/f59e0b/fff?text=Bodo+Amat', summary:'Fokus pada hal yang benar-benar penting.', opinion:'Membantu memprioritaskan energi mental.' },
+      { id:'book-3', title:'Thinking, Fast and Slow', author:'Daniel Kahneman', rating:5, thumb:'https://placehold.co/400x600/ef4444/fff?text=Fast+Slow', summary:'Menjelajahi dua sistem berpikir yang menggerakkan kita.', opinion:'Wajib baca untuk paham bias kognitif.' },
+      { id:'book-4', title:'How to Solve It', author:'George Pólya', rating:4, thumb:'https://placehold.co/400x600/22c55e/fff?text=How+To+Solve+It', summary:'Metode klasik untuk memecahkan masalah (heuristik).', opinion:'Dasar-dasar problem solving matematis.' }
+    ];
+
+    // --------- [NEW] Update hero stats dynamically ---------
+    // Kita set text content berdasarkan panjang array data yang sebenarnya
+    document.getElementById('stat-projects').textContent = `{ ${projectsData.length}+ }`;
+    document.getElementById('stat-reviews').textContent = `{ ${reviewsData.length} }`;
+
+    // --------- Utility: render projects + reviews ---------
+    const projectsGrid = document.getElementById('projects-grid');
+    const reviewsGrid = document.getElementById('reviews-grid');
+
+    function renderProjects(filter='all'){
+      if (!projectsGrid) return;
+      projectsGrid.innerHTML = '';
+      const filtered = projectsData.filter(p => filter === 'all' ? true : p.tags.includes(filter));
+      
+      if (filtered.length === 0) {
+        projectsGrid.innerHTML = `<p class="text-gray-500 sm:col-span-2 lg:col-span-3">Tidak ada proyek untuk filter "${filter}".</p>`;
+        return;
+      }
+
+      filtered.forEach((p, i) => {
+        const card = document.createElement('article');
+        // Menambahkan border untuk definisi yang lebih baik
+        card.className = 'tilt-card group rounded-2xl bg-white/60 dark:bg-gray-800/60 shadow-lg overflow-hidden border border-white/20 dark:border-gray-700/30 hover:shadow-2xl cursor-pointer';
+        card.setAttribute('data-id', p.id);
+        card.innerHTML = `
+          <img src="${p.thumb}" alt="${p.title}" class="w-full h-44 object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.onerror=null;this.src='https.placehold.co/800x520/gray/fff?text=no+image'">
+          <div class="p-4">
+            <h3 class="font-semibold text-lg text-gray-900 dark:text-white">${p.title}</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mt-2 min-h-[40px]">${p.desc}</p>
+            <div class="mt-4 flex items-center justify-between">
+              <div class="flex gap-2 text-xs">
+                ${p.tags.map(t => `<span class="px-2 py-1 rounded-full bg-white/30 dark:bg-black/20 text-gray-600 dark:text-gray-300">${t}</span>`).join('')}
+              </div>
+              <div class="text-brand1 font-medium text-sm group-hover:translate-x-1 transition-transform">Lihat →</div>
+            </div>
+          </div>
+        `;
+        projectsGrid.appendChild(card);
+        attachTilt(card);
+      });
+    }
+
+    // [NEW] Helper function for star ratings (DRY Principle)
+    function getStarRatingHTML(rating) {
+      return Array(5).fill(0).map((_, i) => `<svg class="w-4 h-4 ${i < rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>`).join('');
+    }
+
+    // [FIX] MENAMBAHKAN KEMBALI FUNGSI-FUNGSI JS YANG HILANG
+
+    function renderReviews(){
+      if (!reviewsGrid) return;
+      reviewsGrid.innerHTML = '';
+      reviewsData.forEach(r => {
+        const card = document.createElement('article');
+        // Menambahkan border dan style yang lebih baik untuk kartu ulasan
+        card.className = 'tilt-card p-4 rounded-2xl bg-white/60 dark:bg-gray-800/60 shadow-lg cursor-pointer flex gap-4 items-start border border-white/20 dark:border-gray-700/30';
+        card.setAttribute('data-id', r.id); // Meskipun tidak dipakai, baik untuk konsistensi
+        card.innerHTML = `
+          <img src="${r.thumb}" class="w-24 h-32 object-cover rounded-md flex-shrink-0 shadow-md" onerror="this.onerror=null;this.src='https.placehold.co/400x600/gray/fff?text=no+image'">
+          <div class="flex-1">
+            <h3 class="font-semibold text-lg text-gray-900 dark:text-white">${r.title}</h3>
+            <div class="text-sm text-gray-500 dark:text-gray-400">oleh ${r.author}</div>
+            <!-- [MODIFIED] Menggunakan helper function -->
+            <div class="flex items-center mt-1">
+              ${getStarRatingHTML(r.rating)}
+            </div>
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300"><em>"${r.opinion}"</em></p>
+          </div>
+        `;
+        reviewsGrid.appendChild(card);
+        attachTilt(card);
+      });
+    }
+
+    // --------- Tilt 3D effect (simple) ---------
+    function attachTilt(el){
+      if (!el) return;
+      el.addEventListener('mousemove', (ev) => {
+        // Hanya jalankan jika bukan di perangkat sentuh (mengurangi bug di mobile)
+        if ('ontouchstart' in window) return;
+        
+        const rect = el.getBoundingClientRect();
+        const x = ev.clientX - rect.left; // x position within the element.
+        const y = ev.clientY - rect.top;  // y position within the element.
+        const cx = rect.width/2; const cy = rect.height/2;
+        const dx = (x - cx) / cx; const dy = (y - cy) / cy;
+        const rx = (-dy) * 6; const ry = (dx) * 6;
+        el.style.transform = `perspective(900px) rotateX(${rx}deg) rotateY(${ry}deg) scale(1.01)`;
+        el.style.boxShadow = `${-ry*3}px ${rx*3}px 30px rgba(13,12,26,0.08)`;
+      });
+      el.addEventListener('mouseleave', () => {
+        el.style.transform = '';
+        el.style.boxShadow = '';
+      });
+    }
+
+    // --------- [NEW] Internal Page Rendering (No History) ---------
+    // Fungsi ini HANYA melakukan render UI, tanpa memanipulasi history
+    // Ini memperbaiki error 'ReferenceError: _internalShowPage is not defined'
+    function _internalShowPage(id) {
+      if (!document.getElementById(id)) id = 'home'; // Fallback
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      const el = document.getElementById(id);
+      if(el) el.classList.add('active');
+      
+      const newTitle = (id === 'home') ? 'Portofolio Interaktif — Versi Enhanced' : (id.charAt(0).toUpperCase() + id.slice(1) + ' | Kelompok 6 Project');
+      document.title = newTitle;
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+
+    // Fungsi ini HANYA me-render detail proyek
+    // Ini memperbaiki error 'ReferenceError: _internalOpenProject is not defined'
+    function _internalOpenProject(id) {
+      const project = projectsData.find(p => p.id===id);
+      const container = document.getElementById('project-detail');
+      if(!project || !container) {
+        _internalShowPage('home'); // Fallback jika proyek tidak ditemukan
+        return;
+      }
+      
+      container.innerHTML = `
+        <div class="p-6 rounded-2xl bg-white/60 dark:bg-gray-800/60 shadow-lg border border-white/20 dark:border-gray-700/30">
+          <button data-navigate="projects" class="mb-4 text-sm text-brand1 hover:underline">← Kembali ke Proyek</button>
+          <img src="${project.thumb}" alt="${project.title}" class="w-full h-64 object-cover rounded-lg mb-4" onerror="this.onerror=null;this.src='https.placehold.co/800x520/gray/fff?text=no+image'">
+          <h3 class="text-3xl font-bold text-gray-900 dark:text-white">${project.title}</h3>
+          <div class="flex gap-2 text-xs mt-2">
+            ${project.tags.map(t => `<span class="px-2 py-1 rounded-full bg-white/30 dark:bg-black/20 text-gray-600 dark:text-gray-300">${t}</span>`).join('')}
+          </div>
+          <p class="mt-4 text-lg text-gray-600 dark:text-gray-300">${project.desc}</p>
+          
+          <!-- Bagian Demo -->
+          <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <h4 class="text-xl font-semibold mb-4">Demo Interaktif</h4>
+            ${
+              project.id === 'calculator'
+                ? getCalculatorHTML()
+                : project.id === 'fullstack-buaya'
+                  ? getFullstackBuayaHTML()
+                  : project.id === 'matrix-calculator'
+                    ? getMatrixCalculatorHTML()
+                    : `<div class="p-4 rounded-lg bg-white/30 dark:bg-black/20 text-center text-gray-500">Demo untuk proyek '${project.title}' segera menyusul...</div>`
+            }
+
+
+          </div>
+        </div>
+      `;
+      
+      if(project.id === 'calculator') initCalculator();
+      
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      container.classList.add('active');
+      
+      const newTitle = project.title + ' | Project Kelompok 6';
+      document.title = newTitle;
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+
+    // [MODIFIED] showPage sekarang menangani history PUSH
+    function showPage(id){
+      if (!document.getElementById(id)) id = 'home';
+      
+      const newTitle = (id === 'home') ? 'Portofolio Interaktif — Versi Enhanced' : (id.charAt(0).toUpperCase() + id.slice(1) + ' | Project kelompok 6');
+      const newUrl = (id === 'home') ? window.location.pathname // Gunakan pathname untuk menghapus hash
+                                    : `#${id}`;
+      
+      // Hanya push state jika URL-nya berbeda
+      const currentUrl = window.location.hash || window.location.pathname;
+      const targetUrl = newUrl.startsWith('#') ? newUrl : newUrl.substring(newUrl.lastIndexOf('/') + 1);
+
+      if (currentUrl !== targetUrl && !(id === 'home' && currentUrl === window.location.pathname)) {
+         history.pushState({page: id}, newTitle, newUrl);
+      }
+      
+      _internalShowPage(id); // Panggil fungsi internal untuk render
+    }
+
+    // [MODIFIED] open project detail sekarang menangani history PUSH
+    function openProject(id){
+      const project = projectsData.find(p => p.id===id);
+      if(!project) {
+        showPage('home'); // Kembali ke home jika proyek tidak ditemukan
+        return;
+      }
+
+      const newTitle = project.title + ' | Project Kelompok 6';
+      const newUrl = `#project-${id}`;
+      
+      if (window.location.hash !== newUrl) {
+          history.pushState({page: 'project-detail', projectId: id}, newTitle, newUrl);
+      }
+      
+      _internalOpenProject(id); // Panggil fungsi internal untuk render
+    }
+
+    // --------- [NEW] Navigation / SPA interactions ---------
+    document.addEventListener('click', (e) => {
+      // Cek navigasi
+      const nav = e.target.closest('[data-navigate]');
+      if(nav){
+        e.preventDefault(); 
+        const to = nav.dataset.navigate;
+        showPage(to); // Fungsi showPage sekarang menangani history
+        return;
+      }
+
+      // Cek klik kartu proyek (di grid utama)
+      const card = e.target.closest('#projects-grid [data-id]');
+      if(card){
+        e.preventDefault(); 
+        const id = card.dataset.id;
+        openProject(id);
+      }
+      
+      // Cek klik slider di hero
+      const slide = e.target.closest('.hero-slide[data-id]');
+      if(slide){
+        e.preventDefault();
+        const id = slide.dataset.id;
+        openProject(id);
+      }
+
+      // [NEW] Cek klik kartu ulasan
+      const reviewCard = e.target.closest('#reviews-grid [data-id]');
+      if(reviewCard){
+        e.preventDefault();
+        const id = reviewCard.dataset.id;
+        openReviewModal(id);
+      }
+    });
+
+    // --------- [NEW] Filter logic ---------
+    const filterSelect = document.getElementById('filter');
+    if (filterSelect) {
+      filterSelect.addEventListener('change', (e) => {
+        renderProjects(e.target.value);
+      });
+    }
+
+    // --------- [NEW] Render initial content ---------
+    renderProjects('all');
+    renderReviews();
+
+    // --------- [NEW] Hero Slider Logic ---------
+    const sliderTrack = document.getElementById('hero-slider-track');
+    const prevBtn = document.getElementById('hero-prev');
+    const nextBtn = document.getElementById('hero-next');
+    let currentSlide = 0;
+    let slideInterval;
+
+    function renderHeroSlider() {
+      if (!sliderTrack) return;
+      sliderTrack.innerHTML = '';
+      projectsData.forEach(p => {
+        const slide = document.createElement('div');
+        slide.className = 'hero-slide p-2 cursor-pointer group';
+        slide.setAttribute('data-id', p.id);
+        slide.innerHTML = `
+          <img src="${p.thumb}" alt="${p.title}" class="w-full h-[280px] object-cover rounded-lg mb-3 group-hover:scale-[1.02] transition-transform duration-300" onerror="this.src='https://placehold.co/800x520/gray/fff?text=no+image'">
+          <div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">Proyek Unggulan</div>
+            <div class="text-lg font-semibold text-gray-900 dark:text-white">${p.title}</div>
+          </div>
+        `;
+        sliderTrack.appendChild(slide);
+      });
+    }
+
+    function goToSlide(index) {
+      if (!sliderTrack) return;
+      const slideCount = projectsData.length;
+      if (slideCount === 0) return; // Mencegah error jika tidak ada proyek
+      currentSlide = (index + slideCount) % slideCount;
+      sliderTrack.style.transform = `translateX(-${currentSlide * 100}%)`;
+    }
+
+    function startSliderInterval() {
+      stopSliderInterval(); // Hentikan interval sebelumnya
+      slideInterval = setInterval(() => {
+        goToSlide(currentSlide + 1);
+      }, 4000); // Ganti slide setiap 4 detik
+    }
+
+    function stopSliderInterval() {
+      clearInterval(slideInterval);
+    }
+
+    if (prevBtn && nextBtn && sliderTrack) {
+      renderHeroSlider();
+      goToSlide(0);
+      startSliderInterval();
+
+      prevBtn.addEventListener('click', () => { goToSlide(currentSlide - 1); startSliderInterval(); });
+      nextBtn.addEventListener('click', () => { goToSlide(currentSlide + 1); startSliderInterval(); });
+      
+      const sliderContainer = document.getElementById('hero-card-container');
+      if (sliderContainer) {
+        sliderContainer.addEventListener('mouseenter', stopSliderInterval);
+        sliderContainer.addEventListener('mouseleave', startSliderInterval);
+      }
+    }
+
+    // --------- [NEW] Scroll to top button logic ---------
+    const scrollBtn = document.getElementById('scrollTopBtn');
+    if (scrollBtn) {
+      window.addEventListener('scroll', () => {
+        if(window.scrollY > 300) {
+          scrollBtn.style.display = 'block';
+          // Transisi opacity
+          requestAnimationFrame(() => {
+            scrollBtn.style.opacity = '1';
+          });
+        } else {
+          scrollBtn.style.opacity = '0';
+          // Sembunyikan setelah transisi selesai
+          setTimeout(() => { 
+            if (window.scrollY <= 300) scrollBtn.style.display = 'none'; 
+          }, 300); // Sesuaikan dengan durasi transisi CSS jika ada
+        }
+      });
+      scrollBtn.addEventListener('click', () => window.scrollTo({top:0, behavior:'smooth'}));
+    }
+
+    // --------- [NEW] Custom cursor follow + hover state ---------
+    const dot = document.getElementById('cursor-dot');
+    const ring = document.getElementById('cursor-ring');
+    
+    if (dot && ring && !('ontouchstart' in window)) { // Nonaktifkan di perangkat sentuh
+      window.addEventListener('mousemove', (e) => {
+        dot.style.left = (e.clientX) + 'px'; dot.style.top = (e.clientY) + 'px';
+        ring.style.left = (e.clientX) + 'px'; ring.style.top = (e.clientY) + 'px';
+      });
+
+      // scale ring on interactive elements
+      const interactiveTags = ['button','a','input','select', '[data-navigate]', '[data-id]', '.hero-slide'];
+      document.addEventListener('mouseover', (e) => {
+        if(e.target.closest(interactiveTags.join(','))) {
+          ring.style.transform = 'translate(-50%,-50%) scale(1.6)';
+          ring.style.opacity = '0.5';
+        }
+      });
+      document.addEventListener('mouseout', (e) => {
+        if(e.target.closest(interactiveTags.join(','))) {
+          ring.style.transform = 'translate(-50%,-50%) scale(1)';
+          ring.style.opacity = '1';
+        }
+      });
+    } else if (dot && ring) {
+      // Sembunyikan jika di perangkat sentuh
+      dot.style.display = 'none';
+      ring.style.display = 'none';
+    }
+
+    // --------- [RE-ADDED] Theme toggle + auto by time ---------
+    const themeToggle = document.getElementById('theme-toggle');
+    const iconSun = document.getElementById('icon-sun');
+    const iconMoon = document.getElementById('icon-moon');
+
+    if (themeToggle && iconSun && iconMoon) {
+      function applyTheme(mode){
+        if(mode === 'dark') {
+          document.documentElement.classList.add('dark');
+          iconSun.classList.add('hidden');
+          iconMoon.classList.remove('hidden');
+        } else {
+          document.documentElement.classList.remove('dark');
+          iconSun.classList.remove('hidden');
+          iconMoon.classList.add('hidden');
+        }
+        localStorage.setItem('theme', mode);
+      }
+
+      // pick saved theme or auto by time-of-day
+      const saved = localStorage.getItem('theme');
+      if(saved){ 
+        applyTheme(saved); 
+      } else {
+        const hour = new Date().getHours();
+        applyTheme((hour >= 18 || hour < 6) ? 'dark' : 'light');
+      }
+
+      themeToggle.addEventListener('click', () => {
+        const isDark = document.documentElement.classList.contains('dark');
+        applyTheme(isDark ? 'light' : 'dark');
+      });
+    }
+
+    // --------- [MODIFIED] Small SPA keyboard accessibility (Esc to go home) ---------
+    document.addEventListener('keydown', (e) => {
+      if(e.key === 'Escape') {
+        // [MODIFIED] Cek jika modal terbuka, tutup modal. Jika tidak, baru history back.
+        const modal = document.getElementById('reviewModal');
+        if (modal && !modal.classList.contains('hidden')) {
+          closeReviewModal();
+        } else {
+          history.back();
+        }
+      }
+    });
+
+    // [NEW] Handle History (Back/Forward) dan Initial Load
+    window.addEventListener('popstate', (event) => {
+        if (event.state) {
+            if (event.state.page === 'project-detail') {
+                _internalOpenProject(event.state.projectId);
+            } else {
+                _internalShowPage(event.state.page); 
+            }
+        } else {
+            // State null, ini adalah halaman awal (misal: user menekan back sampai habis)
+            _internalShowPage('home');
+        }
+    });
+
+    // [NEW] Initial load logic + memindahkan loading screen
+    window.addEventListener('load', () => {
+        const hash = window.location.hash.substring(1);
+        if (hash.startsWith('project-')) {
+            const id = hash.replace('project-', '');
+            _internalOpenProject(id); // Langsung buka detail proyek jika ada di URL
+        } else if (hash) {
+            _internalShowPage(hash); // Buka halaman (misal: #projects)
+        } else {
+            _internalShowPage('home'); // Halaman default
+        }
+        
+        // Pindahkan logika loading screen ke sini
+        const loadingEl = document.getElementById('loading');
+        if (loadingEl) {
+          setTimeout(() => { 
+            loadingEl.style.opacity = '0';
+            setTimeout(() => { loadingEl.style.display = 'none'; }, 300);
+          }, 500); 
+        }
+    });
+
+
+    // --------- Calculator code (reused but scoped) ---------
+    let calcState = { display: '0', currentValue: null, operator: null, waitingForOperand: false };
+    
+    function getCalculatorHTML(){
+      return `
+        <div class="max-w-xs mx-auto p-4 bg-white/80 dark:bg-gray-900/70 rounded-2xl shadow-inner">
+          <div id="calc-display" class="text-right font-mono text-4xl p-4 bg-gray-100 dark:bg-black/90 text-gray-900 dark:text-white rounded-md mb-4 overflow-x-auto">${calcState.display}</div>
+          <div id="calc-grid" class="grid grid-cols-4 gap-2">
+            <!-- Styling tombol kalkulator dibuat lebih modern -->
+            <button data-action="clear" class="col-span-2 py-3 rounded-lg bg-accent/80 hover:bg-accent text-white shadow">C</button>
+            <button data-action="operator" data-value="/" class="py-3 rounded-lg bg-brand1/80 hover:bg-brand1 text-white shadow">÷</button>
+            <button data-action="operator" data-value="*" class="py-3 rounded-lg bg-brand1/80 hover:bg-brand1 text-white shadow">×</button>
+
+            <button data-action="digit" data-value="7" class="py-3 rounded-lg bg-white/70 dark:bg-gray-700/70 hover:bg-white dark:hover:bg-gray-700 shadow">7</button>
+            <button data-action="digit" data-value="8" class="py-3 rounded-lg bg-white/70 dark:bg-gray-700/70 hover:bg-white dark:hover:bg-gray-700 shadow">8</button>
+            <button data-action="digit" data-value="9" class="py-3 rounded-lg bg-white/70 dark:bg-gray-700/70 hover:bg-white dark:hover:bg-gray-700 shadow">9</button>
+            <button data-action="operator" data-value="-" class="py-3 rounded-lg bg-brand1/80 hover:bg-brand1 text-white shadow">−</button>
+
+            <button data-action="digit" data-value="4" class="py-3 rounded-lg bg-white/70 dark:bg-gray-700/70 hover:bg-white dark:hover:bg-gray-700 shadow">4</button>
+            <button data-action="digit" data-value="5" class="py-3 rounded-lg bg-white/70 dark:bg-gray-700/70 hover:bg-white dark:hover:bg-gray-700 shadow">5</button>
+            <button data-action="digit" data-value="6" class="py-3 rounded-lg bg-white/70 dark:bg-gray-700/70 hover:bg-white dark:hover:bg-gray-700 shadow">6</button>
+            <button data-action="operator" data-value="+" class="py-3 rounded-lg bg-brand1/80 hover:bg-brand1 text-white shadow">+</button>
+
+            <button data-action="digit" data-value="1" class="py-3 rounded-lg bg-white/70 dark:bg-gray-700/70 hover:bg-white dark:hover:bg-gray-700 shadow">1</button>
+            <button data-action="digit" data-value="2" class="py-3 rounded-lg bg-white/70 dark:bg-gray-700/70 hover:bg-white dark:hover:bg-gray-700 shadow">2</button>
+            <button data-action="digit" data-value="3" class="py-3 rounded-lg bg-white/70 dark:bg-gray-700/70 hover:bg-white dark:hover:bg-gray-700 shadow">3</button>
+            <button data-action="equals" class="row-span-2 py-3 rounded-lg bg-brand2/90 hover:bg-brand2 text-white shadow">=</button>
+
+            <button data-action="digit" data-value="0" class="col-span-2 py-3 rounded-lg bg-white/70 dark:bg-gray-700/70 hover:bg-white dark:hover:bg-gray-700 shadow">0</button>
+            <button data-action="decimal" class="py-3 rounded-lg bg-white/70 dark:bg-gray-700/70 hover:bg-white dark:hover:bg-gray-700 shadow">.</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function initCalculator(){
+      calcState = { display: '0', currentValue: null, operator: null, waitingForOperand: false };
+      const grid = document.getElementById('calc-grid');
+      const displayEl = document.getElementById('calc-display');
+      if(!grid || !displayEl) return;
+
+      const updateDisplay = () => { 
+        if(displayEl) {
+          // Mencegah overflow teks yang berlebihan
+          let displayText = String(calcState.display);
+          if (displayText.length > 12) {
+            displayText = parseFloat(displayText).toPrecision(9);
+          }
+          displayEl.textContent = displayText;
+        }
+      }
+
+      grid.addEventListener('click', (e) => {
+        const btn = e.target.closest('button'); if(!btn) return;
+        const action = btn.dataset.action; const value = btn.dataset.value;
+        
+        switch(action){
+          case 'digit':
+            if(calcState.waitingForOperand) { calcState.display = value; calcState.waitingForOperand = false; }
+            else calcState.display = calcState.display === '0' ? value : calcState.display + value;
+            break;
+          case 'decimal':
+            if(calcState.waitingForOperand) { calcState.display = '0.'; calcState.waitingForOperand = false; }
+            else if(!calcState.display.includes('.')) calcState.display += '.';
+            break;
+          case 'operator':
+            performOperation(value); break;
+          case 'equals':
+            performOperation(null); break;
+          case 'clear':
+            calcState = { display:'0', currentValue:null, operator:null, waitingForOperand:false }; break;
+        }
+        updateDisplay();
+      });
+
+      function performOperation(nextOperator){
+        const inputValue = parseFloat(calcState.display);
+        
+        if (isNaN(inputValue)) {
+            calcState.display = 'Error';
+            calcState.currentValue = null;
+            calcState.operator = null;
+            calcState.waitingForOperand = true;
+            return;
+        }
+
+        if(calcState.currentValue == null) {
+            calcState.currentValue = inputValue;
+        } else if(calcState.operator){
+          const ops = { 
+            '/':(a,b)=> (b === 0 ? 'Error' : a/b), 
+            '*':(a,b)=>a*b, 
+            '-':(a,b)=>a-b, 
+            '+':(a,b)=>a+b 
+          };
+          
+          const res = ops[calcState.operator](calcState.currentValue, inputValue);
+          
+          if (res === 'Error') {
+            calcState.display = 'Error';
+            calcState.currentValue = null;
+            calcState.operator = null;
+            calcState.waitingForOperand = true;
+            return;
+          } else {
+            calcState.currentValue = res;
+            calcState.display = String(res);
+          }
+        }
+        
+        calcState.waitingForOperand = true; 
+        calcState.operator = nextOperator;
+      }
+    }
+
+    // --------- [NEW] Review Modal Logic ---------
+    const reviewModal = document.getElementById('reviewModal');
+    const modalOverlay = document.getElementById('modal-overlay');
+    const modalCloseBtn = document.getElementById('modal-close-btn');
+    const modalCard = document.getElementById('modal-card');
+
+    // Elemen Konten Modal
+    const modalImg = document.getElementById('modal-img');
+    const modalTitle = document.getElementById('modal-title');
+    const modalAuthor = document.getElementById('modal-author');
+    const modalRating = document.getElementById('modal-rating');
+    const modalSummary = document.getElementById('modal-summary');
+    const modalOpinion = document.getElementById('modal-opinion');
+
+    function openReviewModal(id) {
+      const review = reviewsData.find(r => r.id === id);
+      if (!review || !reviewModal) return;
+
+      // 1. Populate data
+      modalImg.src = review.thumb;
+      modalTitle.textContent = review.title;
+      modalAuthor.textContent = 'oleh ' + review.author;
+      modalRating.innerHTML = getStarRatingHTML(review.rating); // Gunakan helper
+      modalSummary.textContent = review.summary;
+      modalOpinion.textContent = `"${review.opinion}"`;
+
+      // 2. Tampilkan modal
+      reviewModal.classList.remove('hidden');
+      reviewModal.classList.add('flex');
+      document.body.style.overflow = 'hidden'; // Nonaktifkan scroll
+
+      // 3. Animasikan
+      requestAnimationFrame(() => {
+        modalCard.classList.remove('scale-95', 'opacity-0');
+        modalCard.classList.add('scale-100', 'opacity-100');
+      });
+    }
+
+    function closeReviewModal() {
+      if (!reviewModal) return;
+
+      // 1. Animasikan keluar
+      modalCard.classList.add('scale-95', 'opacity-0');
+      modalCard.classList.remove('scale-100', 'opacity-100');
+
+      // 2. Sembunyikan setelah animasi
+      setTimeout(() => {
+        reviewModal.classList.add('hidden');
+        reviewModal.classList.remove('flex');
+        document.body.style.overflow = ''; // Aktifkan scroll kembali
+      }, 300); // 300ms (matches duration-300)
+    }
+
+    if (modalOverlay && modalCloseBtn) {
+      modalOverlay.addEventListener('click', closeReviewModal);
+      modalCloseBtn.addEventListener('click', closeReviewModal);
+    }
+    function getFullstackBuayaHTML() {
+  return `
+    <div class="max-w-md mx-auto bg-white/70 dark:bg-gray-800/60 p-6 rounded-2xl shadow-lg">
+      <h4 class="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-100">Cari Data Buaya</h4>
+      <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">Masukkan <strong>Observation ID</strong> lalu tekan cari.</p>
+
+      <input id="inputBuaya" type="text" placeholder="Contoh: 101" 
+        class="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white/80 dark:bg-gray-900 text-gray-900 dark:text-white mb-3 focus:ring-2 focus:ring-brand1 outline-none">
+
+      <button id="btnCariBuaya" 
+        class="w-full py-2 bg-brand2 hover:bg-brand1 text-white font-semibold rounded-lg transition">Cari Sekarang</button>
+
+      <div id="hasilBuaya" class="mt-4 text-sm text-gray-700 dark:text-gray-200"></div>
+    </div>
+  `;
+}
+   function getMatrixCalculatorHTML() {
+    return `
+    <div class="max-w-xl mx-auto bg-white/70 dark:bg-gray-800/60 p-6 rounded-2xl shadow-lg">
+      <h4 class="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-100">Kalkulator Matriks</h4>
+      <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">Masukkan elemen matriks (pisahkan dengan spasi, baris dengan enter).</p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label for="matrixAInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Matriks A</label>
+          <textarea id="matrixAInput" rows="4" placeholder="Contoh:\n1 2\n3 4"
+            class="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white/80 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand1 outline-none"></textarea>
+        </div>
+        <div>
+          <label for="matrixBInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Matriks B</label>
+          <textarea id="matrixBInput" rows="4" placeholder="Contoh:\n5 6\n7 8"
+            class="w-full p-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white/80 dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand1 outline-none"></textarea>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2 mb-3"> 
+      <div class="flex gap-2">
+        <button id="btnDet" class="flex-1 py-2 px-3 bg-brand1 hover:bg-brand2 text-white rounded-lg transition text-sm">Determinant (A)</button>
+        <button id="btnInv" class="flex-1 py-2 px-3 bg-accent hover:bg-cyan-600 text-white rounded-lg transition text-sm">Inverse (A)</button>
+        <button id="btnTrans" class="flex-1 py-2 px-3 bg-brand2 hover:bg-brand1 text-white rounded-lg transition text-sm">Transpose (A)</button>
+      </div>
+      
+      <div class="flex gap-2">
+        <button id="btnMul" class="flex-1 py-2 px-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition text-sm font-semibold">A x B</button>
+        <button id="btnAdd" class="flex-1 py-2 px-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition text-sm font-semibold">A + B</button>
+        <button id="btnSub" class="flex-1 py-2 px-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition text-sm font-semibold">A - B</button>
+      </div>
+    </div>
+
+      <div id="matrixOutput" class="p-3 rounded-lg bg-white/40 dark:bg-gray-900/40 min-h-[60px] text-sm text-gray-800 dark:text-gray-200"></div>
+    </div>`;
+  }
+
+document.addEventListener('click', async (e) => {
+    // Listener ini HANYA untuk operasi 1-Matriks (A)
+    if (['btnDet','btnInv','btnTrans'].includes(e.target.id)) {
+      // (DIUBAH) Baca dari matrixAInput
+      const txt = document.getElementById('matrixAInput').value.trim(); 
+      const output = document.getElementById('matrixOutput');
+      if (!txt) { output.innerHTML = '<span class="text-red-500">Isi Matriks A terlebih dahulu.</span>'; return; }
+
+      let matrix;
+      try {
+        matrix = txt.split('\n').map(r => {
+          const cols = r.trim().split(/\s+/);
+          if (cols.some(isNaN)) throw new Error('Input non-numerik terdeteksi.');
+          return cols.map(Number);
+        });
+        // Validasi sederhana
+        const firstRowLength = matrix[0].length;
+        if (matrix.some(row => row.length !== firstRowLength)) {
+          throw new Error('Jumlah kolom tidak konsisten.');
+        }
+      } catch (err) {
+        output.innerHTML = `<span class="text-red-500">Format Matriks A tidak valid. ${err.message}</span>`; return;
+      }
+
+      const operation = e.target.id === 'btnDet' ? 'determinant' : e.target.id === 'btnInv' ? 'inverse' : 'transpose';
+      output.innerHTML = '⏳ Menghitung...';
+
+      try {
+        const res = await fetch('http://127.0.0.1:5000/calculate/matrix', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ matrix, operation })
+        });
+        const data = await res.json();
+        if (res.ok && data.result !== undefined) { // (DIUBAH) Cek 'data.result'
+          if (Array.isArray(data.result)) {
+            const htmlMatrix = data.result.map(row => row.map(val => String(val).padEnd(8)).join('  ')).join('<br>');
+            output.innerHTML = `<pre class="text-sm font-mono leading-relaxed">${htmlMatrix}</pre>`;
+          } else {
+            output.innerHTML = `<div class="text-lg font-semibold text-center">${data.result}</div>`;
+          }
+        } else {
+          output.innerHTML = `<span class="text-red-500">${data.error || 'Terjadi kesalahan.'}</span>`;
+        }
+      } catch (err) {
+        output.innerHTML = `<span class="text-red-500">Tidak dapat terhubung ke server Flask.</span>`;
+        console.error(err);
+      }
+    }
+  });
+
+document.addEventListener('click', async (e) => {
+  if (e.target && e.target.id === 'btnCariBuaya') {
+    const id = document.getElementById('inputBuaya').value.trim();
+    const hasilDiv = document.getElementById('hasilBuaya');
+    
+    if (!id) {
+      hasilDiv.innerHTML = '<span class="text-red-500">Masukkan Observation ID terlebih dahulu.</span>';
+      return;
+    }
+
+    hasilDiv.innerHTML = '🔍 Mencari...';
+
+    try {
+      const res = await fetch('http://127.0.0.1:5000/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target_id: id })
+      });
+
+      const data = await res.json();
+      if (data.found) {
+        const record = data.data;
+        hasilDiv.innerHTML = `
+        <div class="mt-3 p-3 bg-green-100 dark:bg-green-900/40 rounded-lg">
+            <strong>Data Ditemukan!</strong><br>
+            Observation ID: ${record['Observation ID']}<br>
+            Common Name: ${record['Common Name']}<br>
+            Scientific Name: ${record['Scientific Name']}<br>
+            Country/Region: ${record['Country/Region']}<br>
+            Date of Observation: ${record['Date of Observation']}<br>
+        </div>
+        `;
+
+      } else {
+        hasilDiv.innerHTML = `<div class="mt-3 text-red-500">${data.message}</div>`;
+      }
+    } catch (err) {
+      hasilDiv.innerHTML = `<div class="mt-3 text-red-500">Gagal menghubungi server Flask.</div>`;
+      console.error(err);
+    }
+  }
+});
+
+
+// ===============================================
+// --- (BARU) LISTENER UNTUK PERKALIAN MATRIKS ---
+// ===============================================
+// ========================================================
+// --- (UPDATED) LISTENER UNTUK SEMUA OPERASI BINER ---
+// ========================================================
+document.addEventListener('click', async (e) => {
+  // Listener ini sekarang menangani Multiply, Add, dan Subtract
+  const targetId = e.target.id;
+  if (e.target && ['btnMul', 'btnAdd', 'btnSub'].includes(targetId)) {
+    
+    const txtA = document.getElementById('matrixAInput').value.trim();
+    const txtB = document.getElementById('matrixBInput').value.trim();
+    const output = document.getElementById('matrixOutput');
+
+    if (!txtA || !txtB) {
+      output.innerHTML = '<span class="text-red-500">Harap isi Matriks A dan Matriks B.</span>'; return;
+    }
+
+    output.innerHTML = '⏳ Menghitung...';
+    
+    let matrixA, matrixB;
+    
+    // Helper untuk parsing (tidak berubah)
+    const parseMatrix = (txt, name) => {
+      try {
+        const matrix = txt.split('\n').map(r => {
+          const cols = r.trim().split(/\s+/);
+          if (cols.some(val => isNaN(Number(val)))) throw new Error('Input non-numerik terdeteksi.');
+          return cols.map(Number);
+        });
+        const firstRowLength = matrix[0].length;
+        if (matrix.some(row => row.length !== firstRowLength)) {
+          throw new Error('Jumlah kolom tidak konsisten.');
+        }
+        if (matrix.length === 0 || firstRowLength === 0) {
+           throw new Error('Matriks kosong.');
+        }
+        return matrix;
+      } catch (err) {
+        throw new Error(`Format ${name} tidak valid: ${err.message}`);
+      }
+    };
+
+    try {
+      matrixA = parseMatrix(txtA, 'Matriks A');
+      matrixB = parseMatrix(txtB, 'Matriks B');
+    } catch (err) {
+      output.innerHTML = `<span class="text-red-500">${err.message}</span>`;
+      return;
+    }
+    
+    // (BARU) Tentukan operasi berdasarkan ID tombol
+    let operation = '';
+    if (targetId === 'btnMul') operation = 'multiply';
+    else if (targetId === 'btnAdd') operation = 'add';
+    else if (targetId === 'btnSub') operation = 'subtract';
+
+    // Kirim ke ENDPOINT YANG BARU
+    try {
+      const res = await fetch('http://127.0.0.1:5000/calculate/matrix_binary', { // <-- URL Diubah
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          matrix_a: matrixA, 
+          matrix_b: matrixB,
+          operation: operation // <-- (BARU) Kirim jenis operasi
+        })
+      });
+      const data = await res.json();
+      
+      if (res.ok && data.result) {
+        // Format hasil (tidak berubah)
+        const htmlMatrix = data.result.map(row => row.map(val => String(val).padEnd(8)).join('  ')).join('<br>');
+        output.innerHTML = `<pre class="text-sm font-mono leading-relaxed">${htmlMatrix}</pre>`;
+      } else {
+        output.innerHTML = `<span class="text-red-500">${data.error || 'Terjadi kesalahan.'}</span>`;
+      }
+    } catch (err) {
+      output.innerHTML = `<span class="text-red-500">Gagal menghubungi server Flask.</span>`;
+      console.error(err);
+    }
+  }
+});
+
+  </script>
+</body>
+</html>
+
