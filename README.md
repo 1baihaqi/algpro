@@ -2,8 +2,6 @@
 
 Ini adalah proyek aplikasi web sederhana yang berfungsi sebagai kalkulator untuk berbagai operasi algoritma. Aplikasi ini dibangun dengan backend **Flask (Python)** untuk logika komputasi dan frontend **HTML + JavaScript** vanilla untuk antarmuka pengguna.
 
-![Cuplikan Kalkulator Matriks](calcs.jpeg)
-
 ##  Daftar Fitur
 
 Aplikasi ini menyediakan antarmuka untuk melakukan beberapa operasi komputasi:
@@ -12,7 +10,7 @@ Aplikasi ini menyediakan antarmuka untuk melakukan beberapa operasi komputasi:
 * **Operasi Matriks Biner:** Melakukan **penjumlahan**, **pengurangan**, dan **perkalian** antara dua matriks.
 * **Pencarian Sequential:** Mendemonstrasikan algoritma pencarian sequential pada daftar angka dan menunjukkan langkah-langkah pencariannya.
 
-## 🛠️ Teknologi yang Digunakan
+## Hal-hal yang kami gunakan
 
 * **Backend:**
     * **Python 3**
@@ -27,13 +25,19 @@ Aplikasi ini menyediakan antarmuka untuk melakukan beberapa operasi komputasi:
 ## 📂 Struktur File Proyek
 
 Berikut adalah struktur file yang direkomendasikan agar proyek ini berjalan dengan benar (berdasarkan kode di `app.py`).
-├── app.py # Server Flask (API utama)
-├── calculator.py # Modul logika untuk semua kalkulasi (NumPy) 
-├── crocodile_dataset (1).csv # Dataset (dimuat oleh app.py) 
-│ ├── static/
-       └── index.html # File frontend HTML/JS/CSS
-       ├── calcs.jpeg # Screenshot untuk README 
-       ├── proyek-buaya.jpg # Screenshot untuk README
-       ├── image_89209e.png # Screenshot untuk README 
-       └── backend.py # (Opsional) Script Python untuk menguji endpoint
-└── README.md
+Anda benar, struktur yang Anda tempelkan tadi susunannya (indentasinya) sedikit keliru.
+
+Berdasarkan app.py yang mengharapkan index.html berada di dalam folder static, struktur file yang benar untuk bagian README.md Anda seharusnya terlihat seperti ini:
+├── app.py                  # Server Flask (API utama)
+├── calculator.py           # Modul logika untuk semua kalkulasi (NumPy)
+├── crocodile_dataset (1).csv # Dataset (dimuat oleh app.py)
+│
+├── static/                 # Folder untuk file frontend
+│   └── index.html          # File frontend (HTML, CSS, JS)
+│   └──backend.py           # (Opsional) Script Python untuk menguji endpoint
+│   └── calcs.jpeg          # Screenshot untuk README
+│   └── proyek-buaya.jpg    # Screenshot untuk README
+├── image_89209e.png        # Screenshot untuk README
+│              
+└── README.md               # Dokumentasi ini
+
