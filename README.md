@@ -35,10 +35,10 @@ Berdasarkan app.py yang mengharapkan index.html berada di dalam folder static, s
 ├── static/                 # Folder untuk file frontend
 │   └── index.html          # File frontend (HTML, CSS, JS)
 │   └──backend.py           # (Opsional) Script Python untuk menguji endpoint
-│   └── calcs.jpeg          # Screenshot untuk README
-│   └── proyek-buaya.jpg    # Screenshot untuk README
-├── image_89209e.png        # Screenshot untuk README
+│   └── calcs.jpeg          
+│   └── proyek-buaya.jpg    
 │              
 └── README.md               # Dokumentasi ini
+
 
 
