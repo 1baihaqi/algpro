@@ -22,7 +22,7 @@ Aplikasi ini menyediakan antarmuka untuk melakukan beberapa operasi komputasi:
     * **Tailwind CSS:** Untuk styling UI.
     * **JavaScript (Vanilla):** Untuk menangani interaksi UI dan melakukan panggilan `fetch` ke API backend.
 
-## 📂 Struktur File Proyek
+##  Struktur File Proyek
 
 Berikut adalah struktur file yang direkomendasikan agar proyek ini berjalan dengan benar (berdasarkan kode di `app.py`).
 Anda benar, struktur yang Anda tempelkan tadi susunannya (indentasinya) sedikit keliru.
@@ -40,4 +40,5 @@ Berdasarkan app.py yang mengharapkan index.html berada di dalam folder static, s
 ├── image_89209e.png        # Screenshot untuk README
 │              
 └── README.md               # Dokumentasi ini
+
 
